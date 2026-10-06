@@ -1,0 +1,23 @@
+{
+  "name": "@biotap/native",
+  "version": "0.1.0",
+  "description": "Android Native Hardware & C++ JSI Module for BioTap Core",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@biotap/proto": "workspace:*"
+  },
+  "peerDependencies": {
+    "expo": ">=52.0.0",
+    "react": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "expo-modules-core": "~2.1.0",
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,0 +1,10 @@
+<host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/biotap_hce_service_desc"
+    android:requireDeviceUnlock="false">
+    <aid-group
+        android:description="@string/biotap_aid_group_desc"
+        android:category="other">
+        <!-- BioTap Core Dedicated AID: F00102030405 -->
+        <aid-filter android:name="F00102030405" />
+    </aid-group>
+</host-apdu-service>

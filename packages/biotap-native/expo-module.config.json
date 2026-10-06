@@ -1,0 +1,8 @@
+{
+  "name": "BioTapNative",
+  "platforms": ["android"],
+  "android": {
+    "package": "com.biotap.native",
+    "modules": ["com.biotap.native.BioTapModule"]
+  }
+}

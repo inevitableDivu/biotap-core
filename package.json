@@ -1,0 +1,18 @@
+{
+  "name": "biotap-core-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "High-assurance, local-first tap-to-share contact exchange platform for Android",
+  "scripts": {
+    "build:proto": "pnpm --filter @biotap/proto build",
+    "build:native": "pnpm --filter @biotap/native build",
+    "build": "pnpm -r --filter=!apps/* build",
+    "start": "pnpm --filter @biotap/mobile start",
+    "android": "pnpm --filter @biotap/mobile android",
+    "typecheck": "pnpm -r exec tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "packageManager": "pnpm@11.26.0"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@biotap/proto",
+  "version": "0.1.0",
+  "description": "Protocol Buffers schemas and binary codecs for BioTap Core",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "protobufjs": "^7.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

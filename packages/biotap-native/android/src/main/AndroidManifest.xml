@@ -1,0 +1,41 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.biotap.native">
+
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.nfc.hce"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.fingerprint"
+        android:required="false" />
+
+    <application>
+        <!-- Zero-Battery Idle Wakeup: Host Card Emulation Service -->
+        <service
+            android:name=".hce.BioTapHceService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/aids" />
+        </service>
+
+        <!-- Assistant-Style Translucent Overlay Activity -->
+        <activity
+            android:name=".overlay.TranslucentActivity"
+            android:theme="@style/Theme.BioTap.TranslucentOverlay"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:windowSoftInputMode="adjustNothing" />
+    </application>
+</manifest>

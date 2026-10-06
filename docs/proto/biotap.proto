@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package biotap.v1;
+
+option java_package = "com.biotap.core.proto";
+option java_multiple_files = true;
+
+// ============================================================================
+// 1. Physical APDU Wire Framing (Chunking & Transport Layer)
+// ============================================================================
+
+enum PacketType {
+  PACKET_TYPE_UNSPECIFIED = 0;
+  HANDSHAKE_INIT = 1;         // Initiator sends ephemeral pubkey + nonce
+  HANDSHAKE_ACK = 2;          // Target responds with ephemeral pubkey + nonce
+  KEEP_ALIVE_WTX = 3;         // Wait Time Extension request/ack
+  PAYLOAD_CHUNK = 4;          // Encrypted payload chunk
+  TRANSFER_COMPLETE = 5;      // Transfer acknowledged
+  SESSION_ABORT = 6;          // Error / Cancel abort
+}
+
+message ApduFrame {
+  PacketType type = 1;
+  uint32 session_id = 2;      // Ephemeral 32-bit session token
+  uint32 sequence_number = 3;  // Chunk sequence index (0-based)
+  uint32 total_chunks = 4;    // Total chunks for payload assembly
+  bytes payload_bytes = 5;    // Raw or encrypted payload chunk (<= 240 bytes)
+  uint32 crc32_checksum = 6;  // Integrity check per APDU frame
+}
+
+// ============================================================================
+// 2. Cryptographic Handshake Messages
+// ============================================================================
+
+message HandshakePayload {
+  uint32 protocol_version = 1;    // Version negotiation (e.g., 1)
+  bytes ephemeral_pubkey = 2;     // NIST P-256 uncompressed public key (65 bytes)
+  bytes session_nonce = 3;        // 32-byte cryptographically secure random nonce
+  int64 timestamp_epoch_ms = 4;   // Handshake initiation timestamp
+}
+
+// ============================================================================
+// 3. Encrypted Envelope (Wire Transport)
+// ============================================================================
+
+message EncryptedProfileEnvelope {
+  bytes initialization_vector = 1; // 12-byte IV for AES-256-GCM
+  bytes ciphertext = 2;            // Serialized ContactProfile encrypted
+  bytes authentication_tag = 3;    // 16-byte GCM authentication tag
+  string sender_key_fingerprint = 4; // SHA-256 fingerprint of sender's public identity
+}
+
+// ============================================================================
+// 4. Application Layer Contact Profile (Business Card Data Model)
+// ============================================================================
+
+enum ProfileVisibility {
+  VISIBILITY_UNSPECIFIED = 0;
+  FULL_PROFESSIONAL = 1;
+  LIMITED_NETWORKING = 2;
+  MINIMAL = 3;
+}
+
+message ContactSocialHandle {
+  string platform = 1;   // e.g. "github", "linkedin", "x", "bluesky"
+  string username = 2;   // e.g. "inevitable"
+  string url = 3;        // e.g. "https://linkedin.com/in/inevitable"
+}
+
+message ContactProfile {
+  string profile_id = 1;            // Canonical UUIDv4
+  string full_name = 2;             // "Jane Doe"
+  string headline = 3;              // "Principal Systems Architect"
+  string company = 4;               // "Autonomous Systems Corp"
+  string department = 5;            // "Core Platform Infrastructure"
+  string primary_email = 6;         // "jane@example.com"
+  string primary_phone = 7;         // "+1-555-0199"
+  string location_city = 8;         // "San Francisco, CA"
+  
+  // Compact compressed avatar thumbnail (JPEG/WebP <= 16KB)
+  bytes avatar_thumbnail_bytes = 9; 
+  
+  repeated ContactSocialHandle social_handles = 10;
+  
+  string vcard_raw = 11;            // Standard RFC 6350 vCard 4.0 string representation
+  ProfileVisibility visibility = 12;
+  
+  int64 created_at_epoch_ms = 13;
+  int64 updated_at_epoch_ms = 14;
+  
+  // Digital signature over profile digest using device hardware identity key
+  bytes identity_signature = 15;
+}

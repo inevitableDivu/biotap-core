@@ -1,0 +1,4 @@
+<resources>
+    <string name="biotap_hce_service_desc">BioTap Contact Exchange Service</string>
+    <string name="biotap_aid_group_desc">BioTap Professional Profile AID Group</string>
+</resources>

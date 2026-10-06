@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package biotap.v1;
+
+option java_package = "com.biotap.core.proto";
+option java_multiple_files = true;
+
+enum PacketType {
+  PACKET_TYPE_UNSPECIFIED = 0;
+  HANDSHAKE_INIT = 1;
+  HANDSHAKE_ACK = 2;
+  KEEP_ALIVE_WTX = 3;
+  PAYLOAD_CHUNK = 4;
+  TRANSFER_COMPLETE = 5;
+  SESSION_ABORT = 6;
+}
+
+message ApduFrame {
+  PacketType type = 1;
+  uint32 session_id = 2;
+  uint32 sequence_number = 3;
+  uint32 total_chunks = 4;
+  bytes payload_bytes = 5;
+  uint32 crc32_checksum = 6;
+}
+
+message HandshakePayload {
+  uint32 protocol_version = 1;
+  bytes ephemeral_pubkey = 2;
+  bytes session_nonce = 3;
+  int64 timestamp_epoch_ms = 4;
+}
+
+message EncryptedProfileEnvelope {
+  bytes initialization_vector = 1;
+  bytes ciphertext = 2;
+  bytes authentication_tag = 3;
+  string sender_key_fingerprint = 4;
+}
+
+enum ProfileVisibility {
+  VISIBILITY_UNSPECIFIED = 0;
+  FULL_PROFESSIONAL = 1;
+  LIMITED_NETWORKING = 2;
+  MINIMAL = 3;
+}
+
+message ContactSocialHandle {
+  string platform = 1;
+  string username = 2;
+  string url = 3;
+}
+
+message ContactProfile {
+  string profile_id = 1;
+  string full_name = 2;
+  string headline = 3;
+  string company = 4;
+  string department = 5;
+  string primary_email = 6;
+  string primary_phone = 7;
+  string location_city = 8;
+  bytes avatar_thumbnail_bytes = 9;
+  repeated ContactSocialHandle social_handles = 10;
+  string vcard_raw = 11;
+  ProfileVisibility visibility = 12;
+  int64 created_at_epoch_ms = 13;
+  int64 updated_at_epoch_ms = 14;
+  bytes identity_signature = 15;
+}

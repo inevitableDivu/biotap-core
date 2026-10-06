@@ -29,7 +29,7 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = coordinator.subscribe(setCoordinatorState);
-    
+
     // Seed and load profile
     coordinator.seedDefaultProfile().then(async () => {
       const profile = await StorageService.getOutboundProfile();

@@ -1,3 +1,4 @@
+import { ContactProfile } from '@biotap/proto';
 import React, { useEffect, useMemo } from 'react';
 import {
   View,
@@ -8,7 +9,6 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { ContactProfile } from '@biotap/proto';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

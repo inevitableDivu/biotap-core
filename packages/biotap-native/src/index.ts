@@ -1,4 +1,5 @@
 import { NativeModulesProxy, LegacyEventEmitter, EventSubscription } from 'expo-modules-core';
+
 import {
   NfcSessionState,
   NativeHandshakeEvent,

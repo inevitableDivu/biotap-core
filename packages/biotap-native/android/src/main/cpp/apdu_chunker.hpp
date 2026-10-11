@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <cstdint>
-#include <cstddef>
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <vector>
 
 namespace biotap {
 
@@ -17,15 +17,11 @@ struct ChunkedFrame {
 };
 
 class ApduChunker {
-public:
+  public:
     static constexpr size_t MAX_APDU_PAYLOAD_SIZE = 240;
 
-    static std::vector<ChunkedFrame> chunkPayload(
-        uint8_t packetType,
-        uint32_t sessionId,
-        const uint8_t* data,
-        size_t length
-    );
+    static std::vector<ChunkedFrame> chunkPayload(uint8_t packetType, uint32_t sessionId,
+                                                  const uint8_t* data, size_t length);
 
     static uint32_t computeCrc32(const uint8_t* data, size_t length);
     static bool verifyChecksum(const uint8_t* data, size_t length, uint32_t expectedCrc);

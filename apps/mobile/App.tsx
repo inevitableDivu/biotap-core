@@ -1,3 +1,5 @@
+import { BioTapHardwareManager } from '@biotap/native';
+import { ContactProfile } from '@biotap/proto';
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   StyleSheet,
@@ -8,11 +10,10 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { ExchangeCoordinator, CoordinatorState } from './src/state/ExchangeCoordinator';
+
 import { AssistantSheet } from './src/components/AssistantSheet';
 import { StorageService } from './src/services/StorageService';
-import { ContactProfile } from '@biotap/proto';
-import { BioTapHardwareManager } from '@biotap/native';
+import { ExchangeCoordinator, CoordinatorState } from './src/state/ExchangeCoordinator';
 
 export default function App() {
   const coordinator = useMemo(() => new ExchangeCoordinator(), []);

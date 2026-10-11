@@ -11,6 +11,8 @@
 [![Package Manager: pnpm](https://img.shields.io/badge/Package_Manager-pnpm_v11-F69220.svg?style=flat-square&logo=pnpm&logoColor=white)](https://pnpm.io)
 [![Linter: Oxlint](https://img.shields.io/badge/Linter-Oxlint-5C2D91.svg?style=flat-square&logo=oxc&logoColor=white)](https://oxc.rs/docs/guide/usage/linter)
 [![Formatter: Oxfmt](https://img.shields.io/badge/Formatter-Oxfmt-00B4D8.svg?style=flat-square&logo=oxc&logoColor=white)](https://oxc.rs/docs/guide/usage/formatter)
+[![C++ Style: Clang--Format](https://img.shields.io/badge/C%2B%2B_Style-Clang--Format-00599C.svg?style=flat-square&logo=c%2B%2B&logoColor=white)](https://clang.llvm.org/docs/ClangFormat.html)
+[![Kotlin Style: Ktlint](https://img.shields.io/badge/Kotlin_Style-Ktlint_%2B_EditorConfig-7F52FF.svg?style=flat-square&logo=kotlin&logoColor=white)](https://pinterest.github.io/ktlint/)
 
 ---
 
@@ -151,12 +153,20 @@ pnpm typecheck
 pnpm lint
 pnpm lint:fix
 
-# Format with Oxfmt (Rust-based sub-10ms formatter)
+# Format with Oxfmt (Rust-based sub-10ms formatter with import organizer)
 pnpm format
 pnpm format:check
+
+# Format & Lint C++ NDK Core (Clang-Format)
+pnpm format:cpp
+pnpm lint:cpp
+
+# Run all linters and formatters
+pnpm lint:all
+pnpm format:all
 ```
 
-Git pre-commit hooks are enforced automatically via **Husky** and **lint-staged**, running `oxlint` and `oxfmt` on staged files prior to commit.
+Git pre-commit hooks are enforced automatically via **Husky** and **lint-staged**, running `oxlint` and `oxfmt` on staged TypeScript/JSON/YAML files, and `clang-format` on staged C++ files prior to commit. Kotlin styling is enforced via [`.editorconfig`](.editorconfig) and `ktlint` in `packages/biotap-native/android/build.gradle`.
 
 ### Running the Android Mobile App
 

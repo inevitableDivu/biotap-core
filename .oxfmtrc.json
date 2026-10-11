@@ -5,10 +5,21 @@
   "useTabs": false,
   "semi": true,
   "singleQuote": true,
+  "jsxSingleQuote": false,
   "trailingComma": "all",
   "bracketSpacing": true,
+  "bracketSameLine": false,
   "arrowParens": "always",
   "endOfLine": "lf",
+  "insertFinalNewline": true,
+  "sortPackageJson": true,
+  "sortImports": {
+    "order": "asc",
+    "ignoreCase": true,
+    "newlinesBetween": true,
+    "internalPattern": ["@biotap/*"],
+    "groups": ["builtin", "external", "internal", ["parent", "sibling", "index"], "type", "unknown"]
+  },
   "ignorePatterns": [
     "**/node_modules/**",
     "**/dist/**",

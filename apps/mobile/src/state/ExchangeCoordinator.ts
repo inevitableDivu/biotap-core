@@ -1,7 +1,8 @@
 import { BioTapHardwareManager, NfcSessionState } from '@biotap/native';
 import { ContactProfile, ProtoCodec, ProfileVisibility } from '@biotap/proto';
-import { StorageService } from '../services/StorageService';
+
 import { SheetState } from '../components/AssistantSheet';
+import { StorageService } from '../services/StorageService';
 
 export interface CoordinatorState {
   sheetVisible: boolean;

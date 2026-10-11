@@ -1,5 +1,5 @@
-import * as SecureStore from 'expo-secure-store';
 import { ContactProfile, ProtoCodec } from '@biotap/proto';
+import * as SecureStore from 'expo-secure-store';
 
 const PROFILE_KEY = 'biotap_user_profile_protobuf';
 const ENCRYPTION_SALT_KEY = 'biotap_master_salt';

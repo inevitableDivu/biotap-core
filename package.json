@@ -12,11 +12,16 @@
     "typecheck": "pnpm -r exec tsc --noEmit",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
+    "lint:cpp": "clang-format --dry-run --Werror packages/biotap-native/android/src/main/cpp/*.cpp packages/biotap-native/android/src/main/cpp/*.hpp packages/biotap-native/android/src/main/cpp/*.h",
+    "lint:all": "pnpm lint && pnpm lint:cpp",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
+    "format:cpp": "clang-format -i packages/biotap-native/android/src/main/cpp/*.cpp packages/biotap-native/android/src/main/cpp/*.hpp packages/biotap-native/android/src/main/cpp/*.h",
+    "format:all": "pnpm format && pnpm format:cpp",
     "prepare": "husky"
   },
   "devDependencies": {
+    "clang-format": "^1.8.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "oxfmt": "^0.72.0",

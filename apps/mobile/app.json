@@ -12,13 +12,8 @@
       "adaptiveIcon": {
         "backgroundColor": "#0F172A"
       },
-      "permissions": [
-        "android.permission.NFC",
-        "android.permission.USE_BIOMETRIC"
-      ]
+      "permissions": ["android.permission.NFC", "android.permission.USE_BIOMETRIC"]
     },
-    "plugins": [
-      "expo-secure-store"
-    ]
+    "plugins": ["expo-secure-store"]
   }
 }

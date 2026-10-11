@@ -3,12 +3,14 @@
 > **High-Assurance, Local-First NFC Contact Exchange Platform for Android**
 
 [![Platform: Android](https://img.shields.io/badge/Platform-Android-3DDC84.svg?style=flat-square&logo=android&logoColor=white)](https://developer.android.com)
-[![Expo SDK 52](https://img.shields.io/badge/Expo-SDK_52_(New_Arch)-000020.svg?style=flat-square&logo=expo&logoColor=white)](https://expo.dev)
-[![React Native 0.76](https://img.shields.io/badge/React_Native-0.76_(Fabric_%2B_TurboModules)-61DAFB.svg?style=flat-square&logo=react&logoColor=black)](https://reactnative.dev)
+[![Expo SDK 52](<https://img.shields.io/badge/Expo-SDK_52_(New_Arch)-000020.svg?style=flat-square&logo=expo&logoColor=white>)](https://expo.dev)
+[![React Native 0.76](<https://img.shields.io/badge/React_Native-0.76_(Fabric_%2B_TurboModules)-61DAFB.svg?style=flat-square&logo=react&logoColor=black>)](https://reactnative.dev)
 [![Native Core: Kotlin & C++](https://img.shields.io/badge/Native_Core-Kotlin_%2B_C%2B%2B_17-7F52FF.svg?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Protobuf v3](https://img.shields.io/badge/Wire_Format-Protocol_Buffers_v3-4285F4.svg?style=flat-square&logo=google&logoColor=white)](https://protobuf.dev)
 [![Security: KeyStore / Biometrics](https://img.shields.io/badge/Security-Hardware_KeyStore_%2B_BiometricPrompt-F59E0B.svg?style=flat-square&logo=security&logoColor=white)](https://developer.android.com/training/sign-in/biometric-auth)
 [![Package Manager: pnpm](https://img.shields.io/badge/Package_Manager-pnpm_v11-F69220.svg?style=flat-square&logo=pnpm&logoColor=white)](https://pnpm.io)
+[![Linter: Oxlint](https://img.shields.io/badge/Linter-Oxlint-5C2D91.svg?style=flat-square&logo=oxc&logoColor=white)](https://oxc.rs/docs/guide/usage/linter)
+[![Formatter: Oxfmt](https://img.shields.io/badge/Formatter-Oxfmt-00B4D8.svg?style=flat-square&logo=oxc&logoColor=white)](https://oxc.rs/docs/guide/usage/formatter)
 
 ---
 
@@ -60,15 +62,15 @@ biotap-core/
 
 Comprehensive architectural blueprints and system specifications are located in the [`docs/`](docs/) directory:
 
-| Document | Focus & Highlights |
-| :--- | :--- |
-| **[01. System Component Architecture](docs/system-component-architecture.md)** | Hexagonal layer boundaries, 4-tier concurrency model, thread isolation, and language-agnostic interface definitions. |
-| **[02. Hardware-to-UI Lifecycle Flow](docs/hardware-to-ui-lifecycle-flow.md)** | Cold wake-up sequence, window focus arbitration, ISO-DEP `S(WTX)` keep-alive protocol, and bidirectional state machines. |
-| **[03. Edge Case Matrix & Resilience](docs/edge-case-matrix-and-resilience.md)** | Mid-tap RF pullaways, biometric lockouts, lockscreen (Keyguard) policies, and 3000ms deduplication sliding window. |
-| **[04. Security & Cryptographic Architecture](docs/security-and-crypto-architecture.md)** | Hardware KeyStore / StrongBox key hierarchy, ephemeral P-256 ECDH, AES-256-GCM envelope encryption, and zeroization. |
-| **[05. Android & Expo Technical Stack](docs/android-expo-technical-stack.md)** | Expo New Architecture (`newArchEnabled: true`), C++ TurboModule JSI bindings, Kotlin Expo Modules API, 5-thread Android topology. |
-| **[06. Android Native HCE & Biometrics](docs/android-native-hce-biometrics.md)** | Low-level Android OS APIs: `HostApduService`, `BiometricPrompt.CryptoObject`, `TranslucentActivity`, and C++ APDU chunker. |
-| **[07. Protocol Buffers Wire Specification](docs/proto/biotap.proto)** | Binary wire schema: `ApduFrame`, `HandshakePayload`, `EncryptedProfileEnvelope`, and `ContactProfile`. |
+| Document                                                                                  | Focus & Highlights                                                                                                                |
+| :---------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| **[01. System Component Architecture](docs/system-component-architecture.md)**            | Hexagonal layer boundaries, 4-tier concurrency model, thread isolation, and language-agnostic interface definitions.              |
+| **[02. Hardware-to-UI Lifecycle Flow](docs/hardware-to-ui-lifecycle-flow.md)**            | Cold wake-up sequence, window focus arbitration, ISO-DEP `S(WTX)` keep-alive protocol, and bidirectional state machines.          |
+| **[03. Edge Case Matrix & Resilience](docs/edge-case-matrix-and-resilience.md)**          | Mid-tap RF pullaways, biometric lockouts, lockscreen (Keyguard) policies, and 3000ms deduplication sliding window.                |
+| **[04. Security & Cryptographic Architecture](docs/security-and-crypto-architecture.md)** | Hardware KeyStore / StrongBox key hierarchy, ephemeral P-256 ECDH, AES-256-GCM envelope encryption, and zeroization.              |
+| **[05. Android & Expo Technical Stack](docs/android-expo-technical-stack.md)**            | Expo New Architecture (`newArchEnabled: true`), C++ TurboModule JSI bindings, Kotlin Expo Modules API, 5-thread Android topology. |
+| **[06. Android Native HCE & Biometrics](docs/android-native-hce-biometrics.md)**          | Low-level Android OS APIs: `HostApduService`, `BiometricPrompt.CryptoObject`, `TranslucentActivity`, and C++ APDU chunker.        |
+| **[07. Protocol Buffers Wire Specification](docs/proto/biotap.proto)**                    | Binary wire schema: `ApduFrame`, `HandshakePayload`, `EncryptedProfileEnvelope`, and `ContactProfile`.                            |
 
 ---
 
@@ -126,6 +128,7 @@ graph LR
 ## 🚀 Quickstart
 
 ### Prerequisites
+
 - **Node.js**: `v20.x` or higher (verified on Node `v26.x`)
 - **pnpm**: `v10.x` or `v11.x`
 - **Android SDK**: API Level 35 (`compileSdkVersion 35`, `minSdkVersion 26`)
@@ -143,7 +146,17 @@ pnpm install
 
 # Run global monorepo typecheck (resolves directly from TS source)
 pnpm typecheck
+
+# Lint with Oxlint (Rust-based sub-20ms linter)
+pnpm lint
+pnpm lint:fix
+
+# Format with Oxfmt (Rust-based sub-10ms formatter)
+pnpm format
+pnpm format:check
 ```
+
+Git pre-commit hooks are enforced automatically via **Husky** and **lint-staged**, running `oxlint` and `oxfmt` on staged files prior to commit.
 
 ### Running the Android Mobile App
 

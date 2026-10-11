@@ -71,23 +71,27 @@ graph TD
 ## 2. Layer Definitions & Responsibilities
 
 ### 2.1. Presentation Layer
+
 - **Translucent Window Host (`IOverlayWindowController`)**: Manages the native system window token, translucent window flags (e.g., `FLAG_NOT_TOUCH_MODAL`, `FLAG_LAYOUT_NO_LIMITS`), orientation locking, and backdrop blur/dim level without claiming full-screen focus.
 - **Assistant Sheet View**: Renders the sliding bottom drawer, state transitions (idle, authenticating, transferring, success, error), and user confirmation cues.
 - **Exchange Presentation Coordinator (`IExchangeViewModel`)**: Consumes Domain state streams and translates them into an immutable `ExchangeViewState` model. Dispatches intent events (e.g., `UserCancelled`, `RetryRequested`) to the Domain coordinator.
 
 ### 2.2. Domain Layer
+
 - **Exchange Session Coordinator (`IExchangeCoordinator`)**: State machine orchestrating the complete lifecycle of a single tap-to-share event. Correlates NFC connection lifecycles with biometric authorization states.
 - **Cryptographic Operations Engine (`ICryptoEngine`)**: Handles key exchange protocol (ECDH), ephemeral session key derivation (HKDF-SHA256), authenticated encryption (AES-256-GCM / ChaCha20-Poly1305), and digital signature verification.
 - **Contact Payload Processor (`IPayloadProcessor`)**: Manages the zero-copy serialization and deserialization of professional profiles (compact binary protobuf / vCard 4.0). Enforces schema sanitization to block malicious or malformed payloads before database injection.
 - **Biometric Assertion Policy (`IBiometricPolicy`)**: Enforces temporal freshness rules for hardware biometric tokens (e.g., auth validity window ≤ 5000ms, anti-replay nonces).
 
 ### 2.3. Data Layer
+
 - **Profile Repository (`IProfileRepository`)**: Single source of truth for outbound user business cards and ingested contact cards.
 - **Transactional Profile Store (`ITransactionalStore`)**: ACID-compliant local database storing encrypted profiles at rest with WAL (Write-Ahead Logging).
 - **Sync Outbox Queue (`IOutboxQueue`)**: Persistent message queue holding ingested profiles flagged for background synchronization (e.g., CRM export, cloud backup).
 - **Background Job Scheduler (`IBackgroundSyncScheduler`)**: Interfaces with native OS job schedulers (WorkManager / BGTaskScheduler) to defer network I/O until battery, network (unmetered Wi-Fi), and thermal throttling constraints are satisfied.
 
 ### 2.4. Hardware Abstraction Layer (HAL)
+
 - **NFC Transceiver Engine (`INfcTransceiver`)**: Bridges native NFC controller events. Operates concurrently in:
   - **Host Card Emulation (HCE) Mode**: Responds to external reader ISO-DEP APDU commands.
   - **Reader / Poller Mode**: Polls external target tokens, exchanges APDUs, and manages RF field coupling.
@@ -131,6 +135,7 @@ To guarantee smooth 120 FPS UI animations, sub-100ms NFC latency, and absolute U
 ```
 
 ### Concurrency Guarantees & Thread Isolation Rules:
+
 1. **Never block Tier 2**: The NFC transceiver loop MUST NEVER await disk I/O, network requests, or UI thread synchronizations. Any bottleneck in Tier 2 will cause the physical user to experience an RF drop ("Tag Lost" error).
 2. **Backpressure Decoupling**: Raw NFC byte streams are emitted onto an asynchronous, bounded buffer channel consumed by Tier 3.
 3. **Off-Thread Cryptography**: Generating ephemeral keypairs or executing hardware enclave cryptographic operations is executed on Tier 3 workers using non-blocking futures/coroutines.
@@ -149,8 +154,8 @@ Below are the contract definitions (expressed in language-neutral Interface Defi
 // ==========================================
 
 enum NfcRole {
-  EMULATING_TAG,   // Host Card Emulation (HCE)
-  POLLING_READER   // Active reader / initiator
+  EMULATING_TAG, // Host Card Emulation (HCE)
+  POLLING_READER, // Active reader / initiator
 }
 
 enum NfcSessionState {
@@ -159,7 +164,7 @@ enum NfcSessionState {
   HANDSHAKING,
   TRANSFERRING,
   COMPLETED,
-  LOST_CARRIER
+  LOST_CARRIER,
 }
 
 interface NfcPacket {
@@ -171,12 +176,12 @@ interface NfcPacket {
 interface INfcTransceiver {
   // Streams hardware state transitions to domain listeners
   readonly sessionStateStream: AsyncStream<NfcSessionState>;
-  
+
   // Transceiver execution
   startListening(role: NfcRole): Promise<void>;
   sendApdu(packet: NfcPacket): Promise<NfcPacket>;
   stopListening(): Promise<void>;
-  
+
   // Closes RF channel immediately
   terminateSession(): void;
 }
@@ -187,7 +192,7 @@ interface INfcTransceiver {
 
 enum BiometricStrength {
   CLASS_3_STRONG, // Hardware-backed, cryptographic key unlock
-  CLASS_2_WEAK    // Convenience biometric, non-cryptographic
+  CLASS_2_WEAK, // Convenience biometric, non-cryptographic
 }
 
 interface BiometricPromptConfig {
@@ -205,13 +210,13 @@ interface BiometricAuthToken {
 
 interface IBiometricGatekeeper {
   canAuthenticate(strength: BiometricStrength): Promise<boolean>;
-  
+
   // Invokes OS biometric prompt, capturing cryptographic handle
   authenticateWithCrypto(
     config: BiometricPromptConfig,
-    cryptoHandle: CryptoHandle
+    cryptoHandle: CryptoHandle,
   ): Promise<Result<BiometricAuthToken, BiometricError>>;
-  
+
   cancelAuthentication(): void;
 }
 
@@ -224,21 +229,21 @@ enum OverlayState {
   ATTACHED_TRANSLUCENT,
   ANIMATING_IN,
   VISIBLE,
-  ANIMATING_OUT
+  ANIMATING_OUT,
 }
 
 interface IOverlayWindowController {
   readonly stateStream: AsyncStream<OverlayState>;
-  
+
   // Attaches translucent overlay above current background app
   attachTranslucentWindow(): Promise<void>;
-  
+
   // Animates assistant sheet from bottom screen edge
   presentSheet(): Promise<void>;
-  
+
   // Dismisses sheet smoothly and tears down overlay window
   dismissSheet(): Promise<void>;
-  
+
   // Informs window manager of focus requirement for biometric capture
   requestInputFocus(): void;
   releaseInputFocus(): void;
@@ -254,7 +259,7 @@ interface IOverlayWindowController {
 
 interface KeyPairDescriptor {
   keyAlias: string;
-  algorithm: "ECDH_P256" | "Ed25519";
+  algorithm: 'ECDH_P256' | 'Ed25519';
   requiresBiometricUserPresence: boolean;
 }
 
@@ -262,7 +267,7 @@ interface EncryptedPayloadBundle {
   ephemeralPublicKey: ByteBuffer; // 65 bytes uncompressed
   initializationVector: ByteBuffer; // 12 bytes for GCM
   ciphertext: ByteBuffer;
-  authenticationTag: ByteBuffer;   // 16 bytes
+  authenticationTag: ByteBuffer; // 16 bytes
   protocolVersion: uint16;
 }
 
@@ -274,19 +279,19 @@ interface ICryptoEngine {
   deriveSessionKey(
     privateKeyHandle: CryptoHandle,
     peerEphemeralPublicKey: ByteBuffer,
-    salt: ByteBuffer
+    salt: ByteBuffer,
   ): Promise<SymmetricKey>;
 
   // Symmetrically encrypts serialized contact payload
   encryptProfilePayload(
     payload: ByteBuffer,
-    sessionKey: SymmetricKey
+    sessionKey: SymmetricKey,
   ): Promise<EncryptedPayloadBundle>;
 
   // Decrypts and verifies integrity of peer payload
   decryptProfilePayload(
     bundle: EncryptedPayloadBundle,
-    sessionKey: SymmetricKey
+    sessionKey: SymmetricKey,
   ): Promise<Result<ByteBuffer, CryptoIntegrityError>>;
 }
 ```
@@ -341,32 +346,33 @@ The application implements a unidirectional state flow model. The `ExchangeSessi
 ```mermaid
 stateDiagram-v2
     [*] --> IdleHardwareListening
-    
+
     IdleHardwareListening --> OverlayMounted: Hardware Tap Detected (NFC Wake)
     OverlayMounted --> RequestingBiometrics: Sheet Presentation Started
-    
+
     state RequestingBiometrics {
         [*] --> BiometricPromptActive
         BiometricPromptActive --> KeyUnlocked: User Biometric Verified
         BiometricPromptActive --> AuthFailed: Mismatch / Lockout / Cancel
     }
-    
+
     KeyUnlocked --> ExchangingPayloads: Cryptographic Channel Open
-    
+
     state ExchangingPayloads {
         [*] --> TransmittingPackets
         TransmittingPackets --> DecryptingAndValidating: All APDU Packets Received
         DecryptingAndValidating --> PersistingToDB: Payload Integrity Validated
     }
-    
+
     PersistingToDB --> SuccessDismissal: Transaction Committed
     AuthFailed --> ErrorDismissal: User Notified
-    
+
     SuccessDismissal --> [*]
     ErrorDismissal --> [*]
 ```
 
 ### Inversion of Control (IoC) Dependency Graph:
+
 - **Module Injection**: All components receive dependencies via constructor injection through abstract interfaces.
 - **Testability**: The `ExchangeSessionCoordinator` can be executed in a headless JVM/native unit test environment by supplying a mock `INfcTransceiver`, `IBiometricGatekeeper`, and `ICryptoEngine`.
 - **Platform Swappability**: Switching platforms (Android NDK, iOS Darwin, Linux Embedded) requires implementing only the HAL layer (`INfcTransceiver`, `IBiometricGatekeeper`, `IOverlayWindowController`, `ISecureEnclaveProvider`) without altering domain exchange protocols or offline persistence queues.

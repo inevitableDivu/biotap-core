@@ -17,13 +17,13 @@
   "dependencies": {
     "@biotap/proto": "workspace:*"
   },
+  "devDependencies": {
+    "expo-modules-core": "~2.1.0",
+    "typescript": "^5.7.3"
+  },
   "peerDependencies": {
     "expo": ">=52.0.0",
     "react": "*",
     "react-native": "*"
-  },
-  "devDependencies": {
-    "expo-modules-core": "~2.1.0",
-    "typescript": "^5.7.3"
   }
 }

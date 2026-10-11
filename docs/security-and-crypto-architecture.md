@@ -4,13 +4,13 @@
 
 In a physical contactless contact sharing ecosystem, the application must defend against several attack vectors:
 
-| Attack Vector | Threat Description | Architectural Mitigation |
-| :--- | :--- | :--- |
-| **Crowd Skimming / Walk-by Scraping** | Malicious actor approaches victim in subway/crowd with portable NFC reader to siphon personal contact info. | **Hardware Biometric Gatekeeping**: Private keys cannot sign or decrypt without hardware-enforced biometric authorization token. |
-| **Eavesdropping / RF Sniffing** | Third party with high-gain directional antenna monitors ambient RF signals during an exchange. | **Ephemeral ECDH + AES-256-GCM**: Payloads are encrypted on-the-wire with forward secrecy; zero plaintext contact data over RF. |
-| **Replay Attacks** | Attacker records APDU packets from a previous exchange and re-transmits them to impersonate a peer. | **Mutual Cryptographic Nonces**: Each session derives keys using fresh, cryptographically secure 256-bit random nonces exchanged during handshake. |
-| **Physical Device Theft / Data-at-Rest Extraction** | Stolen or seized mobile device subjected to cold-storage memory dump or forensic SQLite extraction. | **Envelope Encryption with Secure Enclave**: SQLite database is encrypted with a Data Encryption Key (DEK) wrapped by a hardware-backed Key Encryption Key (KEK). |
-| **Malicious Payload Injection** | Attacker feeds malformed vCard or malicious buffer to exploit memory vulnerabilities or parse engines. | **Strict Schema Bounds & Sandboxed Serialization**: Strict byte-length limits (≤64KB), memory-safe deserialization, and strict field type validation. |
+| Attack Vector                                       | Threat Description                                                                                          | Architectural Mitigation                                                                                                                                          |
+| :-------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Crowd Skimming / Walk-by Scraping**               | Malicious actor approaches victim in subway/crowd with portable NFC reader to siphon personal contact info. | **Hardware Biometric Gatekeeping**: Private keys cannot sign or decrypt without hardware-enforced biometric authorization token.                                  |
+| **Eavesdropping / RF Sniffing**                     | Third party with high-gain directional antenna monitors ambient RF signals during an exchange.              | **Ephemeral ECDH + AES-256-GCM**: Payloads are encrypted on-the-wire with forward secrecy; zero plaintext contact data over RF.                                   |
+| **Replay Attacks**                                  | Attacker records APDU packets from a previous exchange and re-transmits them to impersonate a peer.         | **Mutual Cryptographic Nonces**: Each session derives keys using fresh, cryptographically secure 256-bit random nonces exchanged during handshake.                |
+| **Physical Device Theft / Data-at-Rest Extraction** | Stolen or seized mobile device subjected to cold-storage memory dump or forensic SQLite extraction.         | **Envelope Encryption with Secure Enclave**: SQLite database is encrypted with a Data Encryption Key (DEK) wrapped by a hardware-backed Key Encryption Key (KEK). |
+| **Malicious Payload Injection**                     | Attacker feeds malformed vCard or malicious buffer to exploit memory vulnerabilities or parse engines.      | **Strict Schema Bounds & Sandboxed Serialization**: Strict byte-length limits (≤64KB), memory-safe deserialization, and strict field type validation.             |
 
 ---
 
@@ -31,7 +31,7 @@ sequenceDiagram
     Note over NodeA, NodeB: 2. Ephemeral Key Exchange (P-256 ECDH)
     NodeA->>NodeA: Generate Ephemeral Keypair (Priv_A, Pub_A)
     NodeB->>NodeB: Generate Ephemeral Keypair (Priv_B, Pub_B)
-    
+
     NodeA->>NodeB: SEND_PUBKEY (Pub_A)
     NodeB->>NodeA: RETURN_PUBKEY (Pub_B)
 
@@ -42,7 +42,7 @@ sequenceDiagram
     Note over NodeA, NodeB: 4. Biometrically Gated Payload Encryption
     NodeB->>NodeB: Biometric Verified -> Encrypt Profile with SessionKey (AES-256-GCM)
     NodeB->>NodeA: STREAM_PAYLOAD (IV [12B] + Ciphertext + AuthTag [16B])
-    
+
     NodeA->>NodeA: Decrypt & Verify AuthTag<br/>Zeroize SessionKey and Priv_A
     NodeB->>NodeB: Zeroize SessionKey and Priv_B
 ```
@@ -105,7 +105,7 @@ interface CryptoHandle {
 
 interface SymmetricKey {
   readonly rawKey: ByteBuffer; // Volatile memory buffer
-  zeroize(): void;             // Secure memory wiping
+  zeroize(): void; // Secure memory wiping
 }
 
 interface ICryptographicManager {
@@ -131,7 +131,7 @@ interface ICryptographicManager {
     localPrivateHandle: CryptoHandle,
     peerPublicKeyBytes: ByteBuffer,
     salt: ByteBuffer,
-    info: string
+    info: string,
   ): Promise<SymmetricKey>;
 
   /**
@@ -140,11 +140,11 @@ interface ICryptographicManager {
   encryptAuthenticated(
     plaintext: ByteBuffer,
     key: SymmetricKey,
-    associatedData?: ByteBuffer
+    associatedData?: ByteBuffer,
   ): Promise<{
-    iv: ByteBuffer;        // 12 bytes
+    iv: ByteBuffer; // 12 bytes
     ciphertext: ByteBuffer;
-    authTag: ByteBuffer;   // 16 bytes
+    authTag: ByteBuffer; // 16 bytes
   }>;
 
   /**
@@ -156,17 +156,14 @@ interface ICryptographicManager {
     iv: ByteBuffer,
     authTag: ByteBuffer,
     key: SymmetricKey,
-    associatedData?: ByteBuffer
+    associatedData?: ByteBuffer,
   ): Promise<ByteBuffer>;
 
   /**
    * Unwraps the local SQLite Data Encryption Key (DEK) using the hardware KEK
    * gated by the verified BiometricAuthToken.
    */
-  unwrapDatabaseKey(
-    encryptedDek: ByteBuffer,
-    authToken: BiometricAuthToken
-  ): Promise<SymmetricKey>;
+  unwrapDatabaseKey(encryptedDek: ByteBuffer, authToken: BiometricAuthToken): Promise<SymmetricKey>;
 }
 ```
 

@@ -11,6 +11,7 @@ This document specifies the concrete Android system-level implementation for Bio
 When an external reader contacts the Android device, the Android NFC stack binds directly to `BioTapHceService` on a dedicated OS **Binder IPC Thread**.
 
 ### 2.1. APDU Protocol & Frame Format
+
 Communication adheres to ISO/IEC 7816-4 APDU standards:
 
 ```
@@ -119,7 +120,7 @@ class BiometricGatekeeper(private val activity: FragmentActivity) {
 
     fun prepareHardwareGatedCipher(): Cipher {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-        
+
         if (!keyStore.containsAlias(KEY_ALIAS)) {
             generateHardwareGatedKey()
         }
@@ -188,6 +189,7 @@ class BiometricGatekeeper(private val activity: FragmentActivity) {
 ## 4. Translucent Assistant Overlay Window Configuration
 
 ### 4.1. Android Styles (`styles.xml`)
+
 The translucent window mimics modern OS assistants (Google Assistant / Siri drawer) without occluding the underlying application:
 
 ```xml
@@ -232,13 +234,13 @@ class TranslucentActivity : AppCompatActivity() {
         window.apply {
             // Position at bottom of screen
             setGravity(Gravity.BOTTOM)
-            
+
             // Allow drawing behind system nav bars
             addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
-            
+
             // Prevent screenshots/recording of contact data
             addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-            
+
             // Support showing over locked screen if triggered while locked
             addFlags(
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
@@ -308,7 +310,7 @@ public:
             frame.sequenceNumber = seq;
             frame.totalChunks = totalChunks;
             frame.payload.assign(data + offset, data + offset + chunkLen);
-            
+
             // Compute CRC32 over payload chunk
             uLong crc = crc32(0L, Z_NULL, 0);
             frame.crc32Checksum = static_cast<uint32_t>(crc32(crc, frame.payload.data(), frame.payload.size()));

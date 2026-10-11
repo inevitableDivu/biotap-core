@@ -9,9 +9,18 @@
     "build": "pnpm -r --filter=!apps/* build",
     "start": "pnpm --filter @biotap/mobile start",
     "android": "pnpm --filter @biotap/mobile android",
-    "typecheck": "pnpm -r exec tsc --noEmit"
+    "typecheck": "pnpm -r exec tsc --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
     "typescript": "^5.7.3"
   },
   "packageManager": "pnpm@11.26.0"

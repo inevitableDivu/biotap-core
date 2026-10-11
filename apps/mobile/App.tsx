@@ -57,7 +57,9 @@ export default function App() {
         <View style={styles.statusBox}>
           <View style={styles.statusRow}>
             <Text style={styles.statusLabel}>Host Card Emulation (HCE):</Text>
-            <Text style={[styles.statusVal, hceAvailable ? styles.activeText : styles.inactiveText]}>
+            <Text
+              style={[styles.statusVal, hceAvailable ? styles.activeText : styles.inactiveText]}
+            >
               {hceAvailable ? 'HARDWARE ACTIVE' : 'UNAVAILABLE'}
             </Text>
           </View>

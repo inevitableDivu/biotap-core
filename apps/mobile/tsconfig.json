@@ -9,18 +9,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@biotap/proto": [
-        "../../packages/biotap-proto/src/index.ts"
-      ],
-      "@biotap/native": [
-        "../../packages/biotap-native/src/index.ts"
-      ]
+      "@biotap/proto": ["../../packages/biotap-proto/src/index.ts"],
+      "@biotap/native": ["../../packages/biotap-native/src/index.ts"]
     }
   },
-  "include": [
-    "src/**/*",
-    "App.tsx",
-    "index.js",
-    "metro.config.js"
-  ]
+  "include": ["src/**/*", "App.tsx", "index.js", "metro.config.js"]
 }

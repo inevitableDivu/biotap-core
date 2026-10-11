@@ -60,7 +60,7 @@ export class ExchangeCoordinator {
       try {
         const bytes = ProtoCodec.base64ToBytes(event.rawPayloadBase64);
         const profile = ProtoCodec.decodeProfile(bytes);
-        
+
         await StorageService.saveReceivedProfile(profile);
 
         this.updateState({
@@ -68,7 +68,7 @@ export class ExchangeCoordinator {
           statusMessage: `Profile exchanged with ${profile.fullName}`,
           receivedProfile: profile,
         });
-      } catch (e) {
+      } catch {
         this.updateState({
           sheetState: 'ERROR',
           statusMessage: 'Failed to decode peer profile payload',

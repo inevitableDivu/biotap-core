@@ -1,6 +1,5 @@
 import { NativeModulesProxy, LegacyEventEmitter, EventSubscription } from 'expo-modules-core';
 import {
-  NfcRole,
   NfcSessionState,
   NativeHandshakeEvent,
   NativePayloadReceivedEvent,
@@ -22,61 +21,61 @@ const BioTapNative = NativeModulesProxy.BioTapNative || {
 
 const emitter = new LegacyEventEmitter(BioTapNative as any);
 
-export class BioTapHardwareManager {
+export const BioTapHardwareManager = {
   /**
    * Check if device hardware supports Host Card Emulation (HCE)
    */
-  static async isHceSupported(): Promise<boolean> {
+  async isHceSupported(): Promise<boolean> {
     return BioTapNative.isHceSupported();
-  }
+  },
 
   /**
    * Check if device NFC is currently enabled in OS settings
    */
-  static async isNfcEnabled(): Promise<boolean> {
+  async isNfcEnabled(): Promise<boolean> {
     return BioTapNative.isNfcEnabled();
-  }
+  },
 
   /**
    * Engage active polling reader mode to read another device or static token
    */
-  static async startReaderMode(): Promise<void> {
+  async startReaderMode(): Promise<void> {
     return BioTapNative.startReaderMode();
-  }
+  },
 
   /**
    * Release reader mode and return to passive listening
    */
-  static async stopReaderMode(): Promise<void> {
+  async stopReaderMode(): Promise<void> {
     return BioTapNative.stopReaderMode();
-  }
+  },
 
   /**
    * Request biometric gatekeeping prompt bound to hardware KeyStore
    */
-  static async authenticateWithBiometrics(): Promise<BiometricResult> {
+  async authenticateWithBiometrics(): Promise<BiometricResult> {
     return BioTapNative.triggerBiometricAuth();
-  }
+  },
 
   /**
    * Dismiss the translucent overlay assistant activity
    */
-  static async dismissOverlay(): Promise<void> {
+  async dismissOverlay(): Promise<void> {
     return BioTapNative.dismissOverlay();
-  }
+  },
 
   // Event Listeners
-  static onNfcStateChanged(listener: (state: NfcSessionState) => void): EventSubscription {
+  onNfcStateChanged(listener: (state: NfcSessionState) => void): EventSubscription {
     return emitter.addListener('onNfcStateChanged', listener);
-  }
+  },
 
-  static onHandshakeDetected(listener: (event: NativeHandshakeEvent) => void): EventSubscription {
+  onHandshakeDetected(listener: (event: NativeHandshakeEvent) => void): EventSubscription {
     return emitter.addListener('onHandshakeDetected', listener);
-  }
+  },
 
-  static onPayloadReceived(listener: (event: NativePayloadReceivedEvent) => void): EventSubscription {
+  onPayloadReceived(listener: (event: NativePayloadReceivedEvent) => void): EventSubscription {
     return emitter.addListener('onPayloadReceived', listener);
-  }
-}
+  },
+};
 
 export * from './BioTapNative.types';

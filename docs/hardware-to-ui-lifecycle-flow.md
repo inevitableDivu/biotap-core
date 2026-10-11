@@ -3,6 +3,7 @@
 ## 1. End-to-End Execution Flow Overview
 
 The BioTap Core lifecycle spans five distinct operational phases:
+
 1. **Zero-Power Hardware Wakeup**: Native OS kernel/NFC controller detects an RF field and routes the interaction based on pre-registered Application IDs (AIDs) or NDEF record filters.
 2. **Overlay Mounting & Focus Acquisition**: The OS launches an ephemeral, translucent window hosting an assistant-style bottom sheet without tearing down the underlying foreground application.
 3. **Hardware Biometric Gatekeeping**: The presentation layer triggers an automatic hardware-backed biometric verification prompt, gating the cryptographic keys within the Secure Enclave/KeyStore.
@@ -30,17 +31,17 @@ sequenceDiagram
     Peer->>NFC_HW: Physical Tap (13.56 MHz RF Field Induced)
     NFC_HW->>NFC_HW: Match AID (F00102030405) or NDEF Filter
     NFC_HW->>Coord: Cold-Boot Dispatch Intent / APDU Service Bind
-    
+
     activate Coord
     Coord->>Overlay: Initialize Translucent Window Token
     activate Overlay
     Overlay->>SheetUI: Mount View & Animate Slide-Up (0-300ms)
     activate SheetUI
-    
+
     Overlay->>Overlay: Request Input Focus (Dismiss Dim Lock)
     SheetUI->>BioPrompt: Trigger Hardware Biometric Prompt
     activate BioPrompt
-    
+
     par Maintain RF Carrier Coupling
         loop While Biometric Pending (Keep-Alive)
             Peer->>Coord: Inbound APDU Request / Ping
@@ -53,11 +54,11 @@ sequenceDiagram
         BioPrompt-->>SheetUI: Biometric Authenticated (Success)
     end
     deactivate BioPrompt
-    
+
     SheetUI->>Coord: Emit BiometricAuthorized Token
     Coord->>Crypto: Initialize Ephemeral ECDH & Generate Nonce
     Crypto-->>Coord: Public Key (P-256) + Nonce
-    
+
     rect rgb(20, 30, 45)
         Note over Coord, Peer: Bidirectional Cryptographic Exchange
         Coord->>Peer: Send Public Key + Handshake Nonce
@@ -68,7 +69,7 @@ sequenceDiagram
 
     Coord->>SheetUI: Emit ExchangeComplete (Trigger Success Haptic)
     SheetUI->>SheetUI: Animate Checkmark & Slide Down (300ms)
-    
+
     par Asynchronous Persistence (Off-Thread)
         Coord->>Store: Atomic Commit Profile to Local DB (WAL)
         activate Store
@@ -81,7 +82,7 @@ sequenceDiagram
         Overlay->>Overlay: Destroy Window & Release Focus
         deactivate Overlay
     end
-    
+
     deactivate Coord
     Note over Overlay: User returned to original background app uninterrupted
 ```
@@ -91,11 +92,14 @@ sequenceDiagram
 ## 3. Detailed Phase Breakdown
 
 ### Phase 1: Zero-Battery Idle & OS Hardware Dispatch
+
 To prevent background battery consumption, the application registers static hardware dispatch hooks in the operating system application manifest:
+
 - **Host Card Emulation (HCE) Mode**: Declares an ISO/IEC 7816-4 Application ID (AID) routing filter (e.g., AID `F0 01 02 03 04 05`). The OS NFC stack routes incoming APDU commands directly to the registered service without waking the application before physical contact.
 - **Polling Reader Mode**: Registers an OS-level NFC discovery technology filter (ISO-DEP, NFC-A, NFC-B, and NDEF MIME types `application/vnd.biotap.contact`).
 
 **Cold-Boot Invocation**:
+
 1. When the external RF field is detected, the kernel wakes the process via a high-priority system service binding or direct hardware intent dispatch.
 2. Memory footprint at wake-up is strictly minimized: only the HAL transceiver and presentation coordinator are initialized; background sync engines and heavy database connections remain dormant until an exchange is validated.
 
@@ -104,6 +108,7 @@ To prevent background battery consumption, the application registers static hard
 ### Phase 2: Assistant-Style Translucent Window Orchestration
 
 Rather than launching an invasive full-screen activity or standard window:
+
 1. **Window Flags**: The overlay window is configured with translucent parameters:
    - Floating layout parameters (`FLAG_LAYOUT_IN_SCREEN`, `FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS`).
    - Hardware acceleration enabled for sub-frame latency animation.
@@ -112,7 +117,7 @@ Rather than launching an invasive full-screen activity or standard window:
    - The sheet is anchored to the bottom edge and driven by spring-physics or cubic-bezier interpolators (duration: 250ms–320ms).
    - Rendered using non-disruptive system assistant styling (compact drawer displaying peer status, contact avatar placeholder, and verification spinner).
 3. **Window Focus Arbitration**:
-   - Secure biometrics on mobile platforms strictly mandate that the requesting window possesses active window focus. 
+   - Secure biometrics on mobile platforms strictly mandate that the requesting window possesses active window focus.
    - The window controller requests focus immediately upon window attachment while leaving touches outside the sheet boundary either passthrough or dismissal-bound.
 
 ---
@@ -128,8 +133,8 @@ Biometric authorization is not merely a UI barrier; it is cryptographically tied
    - The biometric prompt displays immediately as the sheet anchors into place.
    - The prompt provides instant hardware feedback (Face/Fingerprint sensor active).
 3. **RF Field Keep-Alive (ISO-DEP S(WTX) Protocol)**:
-   - *The Physical Latency Dilemma*: Scanning a fingerprint or Face ID takes between 400ms and 3000ms. If an external reader does not receive a response within standard ISO 14443-4 timeouts (typically 300ms–500ms), it drops the RF carrier.
-   - *The Solution*: While the biometric prompt is awaiting user input, the high-priority Hardware I/O worker (Tier 2) continuously responds to reader polling with ISO-DEP **S(WTX)** (Wait Time Extension) request frames, negotiating extensions in increments of 250ms until biometrics succeed or timeout expires.
+   - _The Physical Latency Dilemma_: Scanning a fingerprint or Face ID takes between 400ms and 3000ms. If an external reader does not receive a response within standard ISO 14443-4 timeouts (typically 300ms–500ms), it drops the RF carrier.
+   - _The Solution_: While the biometric prompt is awaiting user input, the high-priority Hardware I/O worker (Tier 2) continuously responds to reader polling with ISO-DEP **S(WTX)** (Wait Time Extension) request frames, negotiating extensions in increments of 250ms until biometrics succeed or timeout expires.
 
 ```
 External Reader                     BioTap HCE Service
@@ -155,35 +160,36 @@ BioTap Core seamlessly negotiates role assignment between the two communicating 
 ```mermaid
 stateDiagram-v2
     [*] --> DeviceApproaching
-    
+
     DeviceApproaching --> RoleNegotiation: RF Carrier Detected
-    
+
     state RoleNegotiation {
         [*] --> EvaluateOperatingMode
         EvaluateOperatingMode --> ReaderMode: Initiator / Active RF Field
         EvaluateOperatingMode --> HceMode: Target / External RF Induced
     }
-    
+
     state ReaderMode {
         [*] --> SendSelectApplet
         SendSelectApplet --> AwaitPeerHello: Handshake APDU
         AwaitPeerHello --> ReaderExchange: Exchange Ephemeral Keys
     }
-    
+
     state HceMode {
         [*] --> ListenForSelect
         ListenForSelect --> EmitHceHello: Acknowledge Applet AID
         EmitHceHello --> HceExchange: Exchange Ephemeral Keys
     }
-    
+
     ReaderExchange --> SymmetricTransfer: Session Key Derived (ECDH)
     HceExchange --> SymmetricTransfer: Session Key Derived (ECDH)
-    
+
     SymmetricTransfer --> TransmissionComplete: Cryptographic Verification OK
     TransmissionComplete --> [*]
 ```
 
 #### Protocol Stages:
+
 1. **Discovery & Handshake**:
    - Reader issues `SELECT AID: F00102030405`.
    - HCE responds with `PROTOCOL_VERSION = 0x01` and an ephemeral exchange nonce.

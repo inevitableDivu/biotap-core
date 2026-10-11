@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -37,8 +37,8 @@ export const AssistantSheet: React.FC<AssistantSheetProps> = ({
   onAuthenticate,
   onDismiss,
 }) => {
-  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useMemo(() => new Animated.Value(SCREEN_HEIGHT), []);
+  const opacity = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
     if (visible) {
@@ -69,17 +69,14 @@ export const AssistantSheet: React.FC<AssistantSheetProps> = ({
         }),
       ]).start();
     }
-  }, [visible]);
+  }, [visible, opacity, translateY]);
 
   if (!visible) return null;
 
   return (
     <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
       {/* Translucent Scrim */}
-      <Animated.View
-        style={[styles.scrim, { opacity }]}
-        pointerEvents="auto"
-      >
+      <Animated.View style={[styles.scrim, { opacity }]} pointerEvents="auto">
         <TouchableOpacity
           style={StyleSheet.absoluteFillObject}
           activeOpacity={1}
@@ -127,9 +124,7 @@ export const AssistantSheet: React.FC<AssistantSheetProps> = ({
             <Text style={styles.successBadge}>✓ Contact Verified & Saved</Text>
           ) : null}
 
-          {state === 'ERROR' ? (
-            <Text style={styles.errorBadge}>✕ Transfer Interrupted</Text>
-          ) : null}
+          {state === 'ERROR' ? <Text style={styles.errorBadge}>✕ Transfer Interrupted</Text> : null}
         </View>
 
         {state === 'CONNECTING' && (
@@ -142,14 +137,8 @@ export const AssistantSheet: React.FC<AssistantSheetProps> = ({
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity
-          style={styles.dismissButton}
-          onPress={onDismiss}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.dismissButtonText}>
-            {state === 'SUCCESS' ? 'Done' : 'Dismiss'}
-          </Text>
+        <TouchableOpacity style={styles.dismissButton} onPress={onDismiss} activeOpacity={0.7}>
+          <Text style={styles.dismissButtonText}>{state === 'SUCCESS' ? 'Done' : 'Dismiss'}</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>

@@ -43,12 +43,12 @@ This document formalizes the production architecture for **BioTap Core** targete
 
 ## 2. Why the Dual Kotlin + C++ Extension Paradigm?
 
-| Responsibility | Language | Architectural Justification |
-| :--- | :--- | :--- |
-| **Android Hardware & Lifecycle Hooks** | **Kotlin** | NFC `HostApduService`, `NfcAdapter.ReaderCallback`, `BiometricPrompt`, and Android `WindowManager` are first-class Android SDK APIs requiring lifecycle-aware Android `Context` and binder hooks. |
-| **Protocol Buffers & APDU Frame Chunking** | **C++ (JSI)** | Raw APDU byte arrays must be packetized, validated with CRC32, and marshaled between Protobuf binary wire format and Hermes without JSON bridge serialization overhead. |
-| **Microsecond Cryptography** | **C++ (JSI)** | Ephemeral NIST P-256 ECDH key derivation and AES-256-GCM symmetric block ciphering execute at bare-metal speed with direct `jsi::ArrayBuffer` zero-copy memory access. |
-| **Persistent Identity & Token Storage** | **`expo-secure-store` & KeyStore** | Manages encrypted at-rest storage backed by the Android KeyStore master key without rolling custom file encryption. |
+| Responsibility                             | Language                           | Architectural Justification                                                                                                                                                                       |
+| :----------------------------------------- | :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Android Hardware & Lifecycle Hooks**     | **Kotlin**                         | NFC `HostApduService`, `NfcAdapter.ReaderCallback`, `BiometricPrompt`, and Android `WindowManager` are first-class Android SDK APIs requiring lifecycle-aware Android `Context` and binder hooks. |
+| **Protocol Buffers & APDU Frame Chunking** | **C++ (JSI)**                      | Raw APDU byte arrays must be packetized, validated with CRC32, and marshaled between Protobuf binary wire format and Hermes without JSON bridge serialization overhead.                           |
+| **Microsecond Cryptography**               | **C++ (JSI)**                      | Ephemeral NIST P-256 ECDH key derivation and AES-256-GCM symmetric block ciphering execute at bare-metal speed with direct `jsi::ArrayBuffer` zero-copy memory access.                            |
+| **Persistent Identity & Token Storage**    | **`expo-secure-store` & KeyStore** | Manages encrypted at-rest storage backed by the Android KeyStore master key without rolling custom file encryption.                                                                               |
 
 ---
 
@@ -104,6 +104,7 @@ graph LR
 ```
 
 ### Critical Concurrency Guarantee:
+
 - `HostApduService.processCommandApdu()` executes on the OS **NFC Binder Thread**.
 - It **never blocks** waiting for Hermes JS or `BiometricPrompt`.
 - While the biometric prompt is displayed on the Android Main Thread, the Binder thread returns ISO-DEP `S(WTX)` frames to satisfy the remote terminal's RF polling window.
@@ -113,7 +114,9 @@ graph LR
 ## 4. Hardware Biometrics & Key Storage Architecture
 
 ### 4.1. `expo-secure-store` vs Hardware-Gated `CryptoObject`
+
 The project uses a hybrid security model:
+
 1. **`expo-secure-store`**:
    - Used in TypeScript for storing user profile settings, remote API sync tokens, public identity metadata, and database passphrases.
    - Backed by Android KeyStore `EncryptedSharedPreferences`.
@@ -231,6 +234,7 @@ To wake the app from dead cold state without background battery drain, the nativ
 ```
 
 And `@xml/aids`:
+
 ```xml
 <host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/hce_service_desc"

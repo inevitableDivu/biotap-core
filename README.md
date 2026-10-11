@@ -53,6 +53,7 @@ biotap-core/
 │       ├── app.json                   # Android permissions, plugins, newArchEnabled
 │       ├── App.tsx                    # Main dashboard & tap simulation
 │       ├── src/components/AssistantSheet.tsx # Floating translucent bottom sheet
+│       ├── src/components/ProfileModal.tsx   # User profile onboarding & editor modal
 │       ├── src/services/StorageService.ts # expo-secure-store persistence
 │       └── src/state/ExchangeCoordinator.ts # Reactive exchange state machine
 └── docs/                              # Deep Technical Architecture Blueprints

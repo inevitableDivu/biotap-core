@@ -1,8 +1,21 @@
 import { BioTapHardwareManager, NfcSessionState } from '@biotap/native';
-import { ContactProfile, ProtoCodec, ProfileVisibility } from '@biotap/proto';
+import { ContactProfile, ContactSocialHandle, ProtoCodec, ProfileVisibility } from '@biotap/proto';
 
 import { SheetState } from '../components/AssistantSheet';
 import { StorageService } from '../services/StorageService';
+
+export interface ProfileInput {
+  fullName: string;
+  headline: string;
+  company: string;
+  department?: string;
+  primaryEmail: string;
+  primaryPhone?: string;
+  locationCity?: string;
+  github?: string;
+  linkedin?: string;
+  visibility?: ProfileVisibility;
+}
 
 export interface CoordinatorState {
   sheetVisible: boolean;
@@ -144,30 +157,86 @@ export class ExchangeCoordinator {
   }
 
   /**
-   * Generates mock sample profile for local testing and seeding
+   * Creates or updates the user's actual outbound contact profile
    */
-  public async seedDefaultProfile(): Promise<void> {
+  public async saveUserProfile(input: ProfileInput): Promise<ContactProfile> {
     const existing = await StorageService.getOutboundProfile();
-    if (!existing) {
-      const defaultProfile: ContactProfile = {
-        profileId: 'usr_' + Math.random().toString(36).substring(2, 10),
-        fullName: 'Alex Vance',
-        headline: 'Principal Systems Architect',
-        company: 'BioTap Core Systems',
-        department: 'Infrastructure',
-        primaryEmail: 'alex.vance@example.com',
-        primaryPhone: '+1-555-0149',
-        locationCity: 'San Francisco, CA',
-        socialHandles: [
-          { platform: 'github', username: 'avance', url: 'https://github.com' },
-          { platform: 'linkedin', username: 'avance', url: 'https://linkedin.com' },
-        ],
-        vcardRaw: 'BEGIN:VCARD\nVERSION:4.0\nFN:Alex Vance\nEND:VCARD',
-        visibility: ProfileVisibility.FULL_PROFESSIONAL,
-        createdAtEpochMs: Date.now(),
-        updatedAtEpochMs: Date.now(),
-      };
-      await StorageService.saveOutboundProfile(defaultProfile);
+    const now = Date.now();
+    const socialHandles: ContactSocialHandle[] = [];
+
+    if (input.github?.trim()) {
+      const username = input.github.replace(/^@/, '').trim();
+      socialHandles.push({
+        platform: 'github',
+        username,
+        url: `https://github.com/${username}`,
+      });
     }
+
+    if (input.linkedin?.trim()) {
+      const trimmed = input.linkedin.trim();
+      const url = trimmed.startsWith('http')
+        ? trimmed
+        : `https://linkedin.com/in/${trimmed.replace(/^@/, '')}`;
+      socialHandles.push({
+        platform: 'linkedin',
+        username: trimmed
+          .replace(/^https?:\/\/(www\.)?linkedin\.com\/in\/?/, '')
+          .replace(/\/$/, ''),
+        url,
+      });
+    }
+
+    const profile: ContactProfile = {
+      profileId:
+        existing?.profileId || `usr_${Math.random().toString(36).substring(2, 10)}_${Date.now()}`,
+      fullName: input.fullName.trim(),
+      headline: input.headline.trim(),
+      company: input.company.trim(),
+      department: input.department?.trim() || '',
+      primaryEmail: input.primaryEmail.trim(),
+      primaryPhone: input.primaryPhone?.trim() || '',
+      locationCity: input.locationCity?.trim() || '',
+      socialHandles,
+      vcardRaw: generateVCard(input),
+      visibility: input.visibility ?? ProfileVisibility.FULL_PROFESSIONAL,
+      createdAtEpochMs: existing?.createdAtEpochMs || now,
+      updatedAtEpochMs: now,
+    };
+
+    await StorageService.saveOutboundProfile(profile);
+    return profile;
   }
+}
+
+function generateVCard(input: ProfileInput): string {
+  const lines = [
+    'BEGIN:VCARD',
+    'VERSION:4.0',
+    `FN:${input.fullName.trim()}`,
+    `TITLE:${input.headline.trim()}`,
+    `ORG:${input.company.trim()}`,
+    `EMAIL;TYPE=work:${input.primaryEmail.trim()}`,
+  ];
+
+  if (input.primaryPhone?.trim()) {
+    lines.push(`TEL;TYPE=cell:${input.primaryPhone.trim()}`);
+  }
+  if (input.locationCity?.trim()) {
+    lines.push(`ADR;TYPE=work:;;;${input.locationCity.trim()};;;`);
+  }
+  if (input.github?.trim()) {
+    const username = input.github.replace(/^@/, '').trim();
+    lines.push(`X-SOCIALPROFILE;TYPE=github:https://github.com/${username}`);
+  }
+  if (input.linkedin?.trim()) {
+    const trimmed = input.linkedin.trim();
+    const url = trimmed.startsWith('http')
+      ? trimmed
+      : `https://linkedin.com/in/${trimmed.replace(/^@/, '')}`;
+    lines.push(`X-SOCIALPROFILE;TYPE=linkedin:${url}`);
+  }
+
+  lines.push('END:VCARD');
+  return lines.join('\n');
 }

@@ -12,8 +12,13 @@ import {
 } from 'react-native';
 
 import { AssistantSheet } from './src/components/AssistantSheet';
+import { ProfileModal } from './src/components/ProfileModal';
 import { StorageService } from './src/services/StorageService';
-import { ExchangeCoordinator, CoordinatorState } from './src/state/ExchangeCoordinator';
+import {
+  ExchangeCoordinator,
+  CoordinatorState,
+  ProfileInput,
+} from './src/state/ExchangeCoordinator';
 
 export default function App() {
   const coordinator = useMemo(() => new ExchangeCoordinator(), []);
@@ -25,16 +30,20 @@ export default function App() {
   });
 
   const [myProfile, setMyProfile] = useState<ContactProfile | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [hceAvailable, setHceAvailable] = useState<boolean>(false);
   const [nfcActive, setNfcActive] = useState<boolean>(false);
 
   useEffect(() => {
     const unsubscribe = coordinator.subscribe(setCoordinatorState);
 
-    // Seed and load profile
-    coordinator.seedDefaultProfile().then(async () => {
-      const profile = await StorageService.getOutboundProfile();
+    // Check if user already configured their outbound profile
+    StorageService.getOutboundProfile().then((profile) => {
       setMyProfile(profile);
+      if (!profile) {
+        // Automatically prompt user for their actual information on first launch
+        setShowProfileModal(true);
+      }
     });
 
     // Check hardware status
@@ -43,6 +52,12 @@ export default function App() {
 
     return () => unsubscribe();
   }, [coordinator]);
+
+  const handleSaveProfile = async (input: ProfileInput) => {
+    const saved = await coordinator.saveUserProfile(input);
+    setMyProfile(saved);
+    setShowProfileModal(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -77,25 +92,71 @@ export default function App() {
         </View>
 
         {/* My Outbound Card */}
-        {myProfile && (
-          <View style={styles.cardContainer}>
+        <View style={styles.cardContainer}>
+          <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionHeading}>Active Outbound Business Card</Text>
+            {myProfile && (
+              <TouchableOpacity
+                onPress={() => setShowProfileModal(true)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={styles.editProfileLink}>Edit Card</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {myProfile ? (
             <View style={styles.businessCard}>
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarLetter}>{myProfile.fullName.charAt(0)}</Text>
+              <View style={styles.cardTopRow}>
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarLetter}>
+                    {myProfile.fullName.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.editCardBadge}
+                  onPress={() => setShowProfileModal(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.editCardBadgeText}>Edit Details</Text>
+                </TouchableOpacity>
               </View>
+
               <Text style={styles.cardName}>{myProfile.fullName}</Text>
               <Text style={styles.cardTitle}>{myProfile.headline}</Text>
-              <Text style={styles.cardCompany}>{myProfile.company}</Text>
+              <Text style={styles.cardCompany}>
+                {myProfile.department
+                  ? `${myProfile.company} • ${myProfile.department}`
+                  : myProfile.company}
+              </Text>
 
               <View style={styles.divider} />
 
               <Text style={styles.cardContact}>{myProfile.primaryEmail}</Text>
-              <Text style={styles.cardContact}>{myProfile.primaryPhone}</Text>
-              <Text style={styles.cardLocation}>{myProfile.locationCity}</Text>
+              {myProfile.primaryPhone ? (
+                <Text style={styles.cardContact}>{myProfile.primaryPhone}</Text>
+              ) : null}
+              {myProfile.locationCity ? (
+                <Text style={styles.cardLocation}>{myProfile.locationCity}</Text>
+              ) : null}
             </View>
-          </View>
-        )}
+          ) : (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyCardTitle}>No Profile Configured</Text>
+              <Text style={styles.emptyCardSubtitle}>
+                Create your verified professional card to exchange contact details instantly over
+                NFC.
+              </Text>
+              <TouchableOpacity
+                style={styles.createCardButton}
+                onPress={() => setShowProfileModal(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.createCardButtonText}>Set Up Profile</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
 
         {/* Manual Test Action for Reader Mode */}
         <View style={styles.actionsContainer}>
@@ -108,6 +169,15 @@ export default function App() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Outbound Profile Setup / Edit Modal */}
+      <ProfileModal
+        visible={showProfileModal}
+        initialProfile={myProfile}
+        onSave={handleSaveProfile}
+        onClose={() => setShowProfileModal(false)}
+        isInitialSetup={!myProfile}
+      />
 
       {/* Assistant-Style Floating Bottom Sheet */}
       <AssistantSheet
@@ -178,13 +248,23 @@ const styles = StyleSheet.create({
   cardContainer: {
     marginBottom: 24,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sectionHeading: {
     fontSize: 12,
     color: '#64748B',
     textTransform: 'uppercase',
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 12,
+  },
+  editProfileLink: {
+    fontSize: 13,
+    color: '#38BDF8',
+    fontWeight: '700',
   },
   businessCard: {
     backgroundColor: '#1E293B',
@@ -198,6 +278,12 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
+  cardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   avatarPlaceholder: {
     width: 52,
     height: 52,
@@ -205,10 +291,60 @@ const styles = StyleSheet.create({
     backgroundColor: '#38BDF8',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
   },
   avatarLetter: {
     fontSize: 22,
+    fontWeight: '800',
+    color: '#0B0F19',
+  },
+  editCardBadge: {
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+  },
+  editCardBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#38BDF8',
+  },
+  emptyCard: {
+    backgroundColor: '#131B2E',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  emptyCardTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#F8FAFC',
+    marginBottom: 8,
+  },
+  emptyCardSubtitle: {
+    fontSize: 13,
+    color: '#94A3B8',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  createCardButton: {
+    backgroundColor: '#38BDF8',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    shadowColor: '#38BDF8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  createCardButtonText: {
+    fontSize: 14,
     fontWeight: '800',
     color: '#0B0F19',
   },
